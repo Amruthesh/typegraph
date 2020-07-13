@@ -1,6 +1,7 @@
 import { Resolver, Query, Mutation, Arg } from "type-graphql"
-import * as bcrypt from 'bcryptjs'
+import bcrypt from 'bcryptjs'
 import { User } from '../../entity/User'
+import { RegisterInput } from "./Register/input"
 
 @Resolver()
 export default class RegisterResolver {
@@ -11,10 +12,7 @@ export default class RegisterResolver {
 
     @Mutation(() => User)
     async register(
-        @Arg("firstName") firstName: string,
-        @Arg("lastName") lastName: string,
-        @Arg("email") email: string,
-        @Arg("password") password: string
+        @Arg("data") {email, firstName, lastName, password}: RegisterInput
     ): Promise<User> {
         const hashedPassword = await bcrypt.hash(password, 12)
         const user = await User.create({
