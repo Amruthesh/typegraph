@@ -4,16 +4,37 @@ import Express from 'express';
 import { buildSchema } from 'type-graphql'
 import { createConnection } from "typeorm"
 import RegisterResolver, {} from "./modules/user/Register"
+import session from "express-session"
+import connectRedis from "connect-redis"
+import { redis } from './redis';
+import LoginResolver from './modules/user/Login';
+import MeResolver from './modules/user/Me';
 
 const main = async () => {
     await createConnection()
     const schema = await buildSchema({
-        resolvers: [RegisterResolver]
+        resolvers: [RegisterResolver, LoginResolver, MeResolver]
     })
     const apolloServer = new ApolloServer({
-        schema
+        schema,
+        context: ({ req }) => ({ req })
     })
     const app = Express()
+
+    const RedisStore = connectRedis(session)
+
+    app.use(session({
+        store: new RedisStore({ client: redis as any}),
+        name: "series_app",
+        resave: false,
+        saveUninitialized: false,
+        secret: "abcdededeff",
+        cookie: {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            maxAge: 1000 * 1800
+        }
+    }))
     
     apolloServer.applyMiddleware({ app })
     app.listen(5100, () => {
