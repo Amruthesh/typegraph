@@ -1,11 +1,12 @@
-import { Resolver, Query, Arg, Ctx } from "type-graphql"
+import { Resolver, Query, Arg, Ctx, UseMiddleware } from "type-graphql"
 import bcrypt from 'bcryptjs'
 import { User } from '../../entity/User'
 import { StandardContext } from "../types/StandardContext"
+import { logArgs } from "../../middlewares/logArgs"
 
 @Resolver()
 export default class LoginResolver {
-    
+    @UseMiddleware(logArgs)
     @Query(() => User, { nullable: true })
     async login(
         @Arg("email") email: string,
@@ -18,7 +19,8 @@ export default class LoginResolver {
             console.log("User not defined")
             return null
         }
-        const valid = bcrypt.compare(password, user.password)
+        const valid = await bcrypt.compare(password, user.password)
+        console.log(valid)
         if (!valid) {
             console.log("Password does not match")
             return null
