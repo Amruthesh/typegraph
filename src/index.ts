@@ -1,21 +1,15 @@
 import 'reflect-metadata'
 import { ApolloServer } from 'apollo-server-express'
 import Express from 'express';
-import { buildSchema } from 'type-graphql'
 import { createConnection } from "typeorm"
-import RegisterResolver, {} from "./modules/user/Register"
 import session from "express-session"
 import connectRedis from "connect-redis"
 import { redis } from './redis';
-import LoginResolver from './modules/user/Login';
-import MeResolver from './modules/user/Me';
-import LogoutResolver from './modules/user/Logout';
+import { createSchema } from './createSchema';
 
 const main = async () => {
     await createConnection()
-    const schema = await buildSchema({
-        resolvers: [RegisterResolver, LoginResolver, MeResolver, LogoutResolver]
-    })
+    const schema = await createSchema()
     const apolloServer = new ApolloServer({
         schema,
         context: ({ req }) => ({ req })
